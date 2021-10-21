@@ -1,0 +1,218 @@
+---
+title: "Using `gt`, `gtExtras` and `openair` to present air quality monitoring data"
+author: "Jack Davison"
+date: "Presented for the 2021 RStudio Table Contest"
+output:
+  rmdformats::html_clean: 
+    highlight: tango
+    number_sections: true
+    lightbox: true
+    gallery: true
+    cards: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r packages, include = F}
+
+library(tidyverse)
+library(openair)
+library(gt)
+library(gtExtras)
+
+knitr::opts_chunk$set(include = F)
+
+```
+
+```{r get-data}
+
+# Get Data ----------------------------------------------------------------
+
+data = mydata |>
+  mutate(year = lubridate::year(date)) |> 
+  filter(year == 2004) |> 
+  pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
+  mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10"))) |> 
+  arrange(species)
+
+```
+
+```{r plots}
+
+# Pollution Roses and Polar Plots -----------------------------------------
+
+# adaptation of ggplot gt function
+openair_image = function (plot_object, height){
+  if (is.numeric(height)) {
+    height <- paste0(height, "px")
+  }
+  if (inherits(plot_object, "trellis")) {
+    plot_object <- list(plot_object)
+  }
+  invisible(vapply(seq_along(plot_object), FUN.VALUE = character(1),
+                   USE.NAMES = FALSE, FUN = function(x) {
+                     filename <- paste0("temp_openair_", formatC(x, width = 4,
+                                                                 flag = "0"), ".png")
+                     
+                     lattice::trellis.device(device = "png", filename = filename)
+                     print(plot_object[[x]])
+                     dev.off()
+                     
+                     on.exit(file.remove(filename))
+                     local_image(filename = filename, height = height)
+                   }))
+}
+
+# plot a pollution rose
+data_plots = data |> 
+  nest_by(species) |>
+  mutate(polrose = list(pollutionRose(data, pollutant = "conc")$plot),
+         polplot = list(polarPlot(data, pollutant = "conc")$plot)) |> 
+  arrange(species)
+
+```
+
+```{r other}
+
+# Other columns -----------------------------------------------------------
+
+averages = data |> 
+  group_by(species) |> 
+  summarise(p25 = quantile(conc, .25, na.rm = T),
+            median = median(conc, na.rm = T),
+            mean   = mean(conc, na.rm = T),
+            p75 = quantile(conc, .75, na.rm = T),
+            max    = max(conc, na.rm = T),
+            missing = sum(is.na(conc)) / n()
+  )
+
+spark = data |>
+  timeAverage(avg.time = "month", type = "species") |> 
+  group_by(species) |> 
+  summarise(trend = list(conc))
+
+all = left_join(averages, spark)
+
+```
+
+```{r make table}
+# Combine -----------------------------------------------------------------
+
+gt_data = all |> 
+  mutate(polrose = NA, polplot = NA) |> 
+  arrange(species) |>
+  mutate(
+    name = recode(species,
+                  "co" = "Carbon Monoxide",
+                  "no2" = "Nitrogen Dioxide",
+                  "nox" = "Oxides of Nitrogen",
+                  "o3" = "Ozone",
+                  "so2" = "Sulfur Dioxide",
+                  "pm25" = "Particulate Matter",
+                  "pm10" = ""),
+    species = case_when( species == "co"  ~ "CO",
+                         species == "no2" ~ "NO<sub>2</sub>",
+                         species == "nox" ~ "NO<sub>x</sub>",
+                         species == "o3"  ~ "O<sub>3</sub>",
+                         species == "pm10" ~"PM<sub>10</sub>",
+                         species == "pm25" ~"PM<sub>2.5</sub>",
+                         species == "so2" ~ "SO<sub>2</sub>")) |> 
+  relocate(name)
+
+open_gt = gt_data |> 
+  gt::gt() |> 
+  gtExtras::gt_theme_espn() |> 
+  tab_options(table.font.size = 12) |> 
+  cols_label(name = "Species Name",
+             species = "Formula",
+             polrose = "Poll. Rose",
+             polplot = "Polar Plt.") |> 
+  cols_width(c(p25, median, mean, p75, max, missing) ~ px(50),
+             name ~ px(120)) |> 
+  cols_align(align = "left", columns = 1) |> 
+  cols_align(align = "center", columns = 2) |> 
+  tab_spanner(label = "Visualisations", columns = trend:polplot) |> 
+  tab_spanner(label = "Statistics", columns = p25:missing) |> 
+  tab_footnote(locations = cells_column_labels(columns = trend), 
+               footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") |> 
+  tab_header(title = md("<b>Marylebone 2004</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite. The data were obtained using the <code>openair</code> package.")) |> 
+  fmt_markdown(columns = species) |> 
+  fmt_number(columns = 3:7, n_sigfig = 3, drop_trailing_zeros = T) |> 
+  fmt_percent(columns = 8, drop_trailing_zeros = T) |> 
+  gtExtras::gt_sparkline(column = trend, same_limit = F, range_colors = c("chartreuse3", "red")) |>  
+  text_transform(
+    locations = cells_body(polrose),
+    fn = function(x){
+      map(data_plots$polrose, openair_image, height = px(70))
+    }
+  ) |> 
+  text_transform(
+    locations = cells_body(polplot),
+    fn = function(x){
+      map(data_plots$polplot, openair_image, height = px(70))
+    }
+  )
+  
+```
+
+# Introduction {.tabset}
+
+## Premise { - }
+
+This lesson will take you through three levels of summarising air quality monitoring data.
+
+1.  First, we will begin to use the `gt` package, a powerful package that is to tables what `ggplot2` is to figures.
+
+2.  Then, we will incorporate the `gtExtras` package to further theme and add in-table visualisations.
+
+3.  Finally, we will investigate how to incorporate `openair` plots - `lattice`-based plots extensively around the world by the air quality community - into our `gt` tables.
+
+This lesson assumes a general understanding of the `tidyverse` and `openair`, but is suitable for `gt` novices.
+
+- If you would like to know more about `openair` and reading plots, the best place to look is the [openair book](https://bookdown.org/david_carslaw/openair/), available online.
+
+- If you would like to know more about the `tidyverse`, there are many resources available including [R for Data Science](https://r4ds.had.co.nz/).
+
+All code in this document is reproducible; even the data used comes straight from the `openair` package.
+
+## Data { - } 
+
+## Show me the final table { - }
+
+Below you can see the table we're aiming for by the end of Level 3. As this `rmarkdown` document uses `rmdformats` with the "lightbox" option enabled, you should be able to click on the `openair` plots to enlarge them.
+
+```{r present-table, include = T, message = F, warning = F, echo = F}
+open_gt
+```
+
+# Lessons
+
+```{r new-opts}
+knitr::opts_chunk$set(include = T)
+```
+
+## Level 1: Using `gt` to present summary statistics {.tabset .unnumbered}
+
+### Lesson { - }
+
+### Level Table { - }
+
+## Level 2: Using `gtExtras` to add in-line visualsations {.tabset .unnumbered}
+
+### Lesson { - }
+
+### Level Table { - }
+
+## Level 3: Incorporating `openair` into a `gt` table {.tabset .unnumbered}
+
+### Lesson { - }
+
+### Level Table { - }
+
+```{r lev3-table, echo = F, warning = F, message = F}
+open_gt
+```
+
+# Conclusion
+
