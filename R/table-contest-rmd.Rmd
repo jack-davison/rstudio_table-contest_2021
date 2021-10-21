@@ -20,24 +20,24 @@ library(openair)
 library(gt)
 library(gtExtras)
 
-knitr::opts_chunk$set(include = F)
+knitr::opts_chunk$set(include = F, fig.align = "center")
 
 ```
 
-```{r get-data}
+```{r get-data-init}
 
 # Get Data ----------------------------------------------------------------
 
 data = mydata |>
   mutate(year = lubridate::year(date)) |> 
-  filter(year == 2004) |> 
+  filter(year == 2003) |> 
   pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
   mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10"))) |> 
   arrange(species)
 
 ```
 
-```{r plots}
+```{r plots-init}
 
 # Pollution Roses and Polar Plots -----------------------------------------
 
@@ -72,7 +72,7 @@ data_plots = data |>
 
 ```
 
-```{r other}
+```{r other-init}
 
 # Other columns -----------------------------------------------------------
 
@@ -95,7 +95,7 @@ all = left_join(averages, spark)
 
 ```
 
-```{r make table}
+```{r make-table-init}
 # Combine -----------------------------------------------------------------
 
 gt_data = all |> 
@@ -135,8 +135,9 @@ open_gt = gt_data |>
   tab_spanner(label = "Statistics", columns = p25:missing) |> 
   tab_footnote(locations = cells_column_labels(columns = trend), 
                footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") |> 
-  tab_header(title = md("<b>Marylebone 2004</b> | Air Quality Monitoring Summary"),
-             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite. The data were obtained using the <code>openair</code> package.")) |> 
+  tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+  tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package.")) |>
   fmt_markdown(columns = species) |> 
   fmt_number(columns = 3:7, n_sigfig = 3, drop_trailing_zeros = T) |> 
   fmt_percent(columns = 8, drop_trailing_zeros = T) |> 
@@ -153,30 +154,83 @@ open_gt = gt_data |>
       map(data_plots$polplot, openair_image, height = px(70))
     }
   )
-  
+
 ```
 
 # Introduction {.tabset}
 
+```{r new-opts}
+knitr::opts_chunk$set(include = T)
+```
+
 ## Premise { - }
 
-This lesson will take you through three levels of summarising air quality monitoring data.
+This tutorial will take you through three "levels" of summarising air quality monitoring data.
 
 1.  First, we will begin to use the `gt` package, a powerful package that is to tables what `ggplot2` is to figures.
 
 2.  Then, we will incorporate the `gtExtras` package to further theme and add in-table visualisations.
 
-3.  Finally, we will investigate how to incorporate `openair` plots - `lattice`-based plots extensively around the world by the air quality community - into our `gt` tables.
+3.  Finally, we will investigate how to incorporate `openair` plots - plots extensively around the world by the air quality community - into our `gt` tables.
 
-This lesson assumes a general understanding of the `tidyverse` and `openair`, but is suitable for `gt` novices.
+That last level is perhaps easier said than done - to quote the openair book:
+
+> `openair` is a product of the time it was started and used the highly capable `lattice` package for plotting. This was a time before `ggplot2` and the `tidyverse`.
+
+`gt` has functions that help with the inclusion of `ggplot2`, but not `lattice`, so this will require some modification of pre-existing `gt` functions that will be covered in the third part of the tutorial.
+
+This tutorial assumes a general understanding of the `tidyverse` and `openair`, but is suitable for `gt` novices. The ideal target is an air quality professional or researcher who is interested in exploring new tools for presenting their data.
 
 - If you would like to know more about `openair` and reading plots, the best place to look is the [openair book](https://bookdown.org/david_carslaw/openair/), available online.
 
 - If you would like to know more about the `tidyverse`, there are many resources available including [R for Data Science](https://r4ds.had.co.nz/).
 
-All code in this document is reproducible; even the data used comes straight from the `openair` package.
+All code in this document is reproducible; even the data used comes straight from the `openair` package (see the *"Installation and Data"* tab).
 
-## Data { - } 
+## Installation and Data { - } 
+
+The `tidyverse`, `openair` and `gt` are all available on CRAN, so can be downloaded using `install.packages()`.
+
+```{r cran, eval = F}
+install.packages(tidyverse)
+install.packages(openair)
+install.packages(openair)
+```
+
+`gtExtras` is still under active development, so can be downloaded directly from it's GitHub repository. I would also recommend keeping up to date with it on its [website](https://jthomasmock.github.io/gtExtras/).
+
+```{r ghub, eval = F}
+# if needed install.packages("remotes")
+remotes::install_github("jthomasmock/gtExtras")
+```
+
+The data that is going to be used in this tutorial is adapted from `openair::mydata`.
+
+```{r openair-mydata}
+head(mydata)
+```
+
+The goal for this tutorial is to produce a summary table of air quality pollutants at a single site for a single year (feel free to click *"Show me the final table"* to see). The principles behind this could produce much different table structures however (e.g., a pollutant per row, a year per row, a site per row, some combination of the three, some other idea...).
+
+For this table, the initial transformations that need to be done are as follows:
+
+- Filter for a single year (2003 is chosen arbitrarily, feel free to pick any year in the `mydata` dataset).
+- Reshape the data from a "wide" to "long" format, such that the concentrations are all in one column.
+- Turn the "species" column into a factor in the order we would like them to appear in the final table.
+
+```{r mydata-prep, eval = F}
+data = mydata |>
+  mutate(year = lubridate::year(date)) |> 
+  filter(year == 2003) |> 
+  pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
+  mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10")))
+```
+
+The final structure is now:
+
+```{r}
+head(data, n = 10)
+```
 
 ## Show me the final table { - }
 
@@ -186,33 +240,801 @@ Below you can see the table we're aiming for by the end of Level 3. As this `rma
 open_gt
 ```
 
-# Lessons
-
-```{r new-opts}
-knitr::opts_chunk$set(include = T)
-```
+# Tutorials
 
 ## Level 1: Using `gt` to present summary statistics {.tabset .unnumbered}
 
-### Lesson { - }
+### Tutorial { - }
 
-### Level Table { - }
+Much as a `ggplot2` plot begins with `ggplot()`, a `gt` table begins with `gt()`. However, while frequently a `ggplot()` function can be fed all of our raw data, it can be easier to provide `gt()` with a pre-made summary. Therefore our first step is to summarise our air quality data in some way. In real life, the summary statistics you chose will likely align with the legislation of your country or the sorts of statistics a client wants, but here some simple statistics are chosen.
 
-## Level 2: Using `gtExtras` to add in-line visualsations {.tabset .unnumbered}
+The below code calculates the 25th percentile, median, mean, 7th percentile and maximum of each pollutant, as well as the percentage of data that is missing. Note the trick used for that last statistic - `sum(is.na(conc))` checks whether each value in the column is `NA` and then sums that column of `TRUE`/`FALSE` values, where `TRUE` = 1 and `FALSE` = 0. `n()` gives the number of rows in the group, meaning that the division of the two is effectively "number of missing divided by total".
 
-### Lesson { - }
+Summary statistics could be calculated however we'd like - including using `openair` functions - but this code does the job.
 
-### Level Table { - }
+```{r tidy}
+averages = data |> 
+  group_by(species) |> 
+  summarise(p25 = quantile(conc, .25, na.rm = T),
+            median = median(conc, na.rm = T),
+            mean   = mean(conc, na.rm = T),
+            p75 = quantile(conc, .75, na.rm = T),
+            max    = max(conc, na.rm = T),
+            missing = sum(is.na(conc)) / n()
+  )
+
+averages
+```
+
+Now we're at the position where we can begin a `gt` table. As alluded to earlier, we'll begin by providing the `gt()` function with our data.
+
+```{r gt-first}
+our_table = gt(averages)
+
+our_table
+```
+<br>
+
+`gt` has produced a HTML table which would look excellent in an `rmarkdown` report, but it clearly could do with some finessing. For example, it may be useful to format the numeric columns to be a little shorter - we don't need that many significant figures. `gt` has a collection of `fmt_*()` functions for this purpose. In our case, `fmt_number()`.
+
+Note that, unlike `ggplot2` where additional `geom_*()` functions are *added*, in `gt` additional features like `fmt_*()` are *piped*.
+
+`fmt_*()` functions require columns to be specified. This argument works on "tidyselect" principles, so when we provide the argument `where(is.numeric)` we are telling it to format all numeric columns (in this case, all columns besides "speices"). We could specify a number of decimal places or signifcant figures - in this case the latter - and we can also tell the column to drop trailing zeroes. This means that the median of the NO<sub>x</sub> row won't read "163.000..." just because the CO row goes to more decimal places.
+
+```{r gt-fmt-num}
+our_table = our_table |> 
+  fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T)
+
+our_table
+```
+<br>
+
+This isn't quite right as the "missing" column is actually a percentage. We can override the previous `fmt_number()` column by piping this new output into `fmt_percent()` and specifying the "missing" column. Note that, much like in the `tidyverse`, columns are provided unquoted.
+
+```{r gt-fmt-perc}
+our_table = our_table |> 
+  fmt_percent(columns = missing)
+
+our_table
+```
+<br>
+
+The "species" column could also be refined - currently the second row reads "nox" when it should read "NO<sub>x</sub>". `gt` supports markdown syntax for achieving things like subscripts, bold text and the like. In this case, we'll change our "species" column to be written as markdown. Once again, we can use a `fmt_*()` function, this time to format the column as "markdown".
+
+Just for completion, while we're using `mutate()` let's insert the English names of the pollutants too, and put them at the far left of the table.
+
+```{r gt-fmt-md}
+tab_data = averages |>
+  mutate(
+    name = case_when(
+      species == "co" ~ "Carbon Monoxide",
+      species == "nox" ~ "Oxides of Nitrogen",
+      species == "no2" ~ "Nitrogen Dioxide",
+      species == "o3"  ~ "Ozone",
+      species == "so2" ~ "Sulfur Dioxide",
+      species == "pm25" ~ "Particulate Matter",
+      species == "pm10" ~ ""
+    ),
+    species = case_when(
+      species == "co" ~ "CO",
+      species == "nox" ~ "NO<sub>x</sub>",
+      species == "no2" ~ "NO<sub>2</sub>",
+      species == "o3"  ~ "O<sub>3</sub>",
+      species == "so2" ~ "SO<sub>2</sub>",
+      species == "pm25" ~ "PM<sub>2.5</sub>",
+      species == "pm10" ~ "PM<sub>10</sub>"
+    )) |> 
+  relocate(name, .before = species)
+
+our_table = gt(tab_data) |> 
+  fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+  fmt_percent(columns = missing) |> 
+  fmt_markdown(columns = species)
+
+our_table
+
+```
+<br>
+
+By default, `gt` simply carries over the column names to be the header names, but much like the axis labels that `ggplot2` defaults to these will often want changing. Column names in data are often written to be easy to *use*, but column names in a table should be written to be easy to *read*. It may be useful at this stage to refer to the "elements of a table" diagram from the [gt website](https://gt.rstudio.com/).
+
+!["The elements of a gt table."](gt.svg "The elements of a gt table.")
+
+We are wanting to control something to do with *columns* so we'll use a `cols_*()` function. This family of functions can move columns around, merge them, hide them and - important right now - rename them. `cols_label()` takes 
+
+```{r cols-lab}
+our_table = our_table |> 
+  cols_label(
+    name = "Species Name",
+    species = "Formula"
+  )
+
+our_table
+```
+<br>
+This table is already looking great, but we can refine it on a whole table level. To make large scale changes, we can use the a `tab_*()` function. These could be things like adding a title, subtitle, footnote, or a "spanner title" that groups certain columns together. In the next code chunk we'll implement all of these things. Note that we can format elements like the figure title using markdown by wrapping the string in the `md()` function.
+
+```{r tab-span}
+our_table = our_table |> 
+  tab_spanner(label = "Statistics", columns = p25:missing) |> 
+  tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+  tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package."))
+
+our_table
+```
+<br>
+This is a good stopping point to review the code we've used so far. Notice what we have done:
+
+- We have created a summary data frame, and then turned it into a HTML table using `gt()`.
+- We used `fmt_*()` functions to format numeric and character columns.
+- We used a `col_*()` function to change a property of a column (in this case, it's name)
+- We used `tab_*()` functions to make table-wide changes - giving it a title, spanner headers, etc.
+
+Review the full code from this level in the **"Code"** tab. Once you're comfortable with it, feel free to move onto Level 2 where `gtExtras` will be incorporated to enhance theming and introduce in-line visualisations.
+
+### Code { - }
+
+```{r lev1-code}
+
+data = mydata |>
+  mutate(year = lubridate::year(date)) |> 
+  filter(year == 2003) |> 
+  pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
+  mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10"))) |> 
+  arrange(species)
+
+averages = data |> 
+  group_by(species) |> 
+  summarise(p25 = quantile(conc, .25, na.rm = T),
+            median = median(conc, na.rm = T),
+            mean   = mean(conc, na.rm = T),
+            p75 = quantile(conc, .75, na.rm = T),
+            max    = max(conc, na.rm = T),
+            missing = sum(is.na(conc)) / n()
+  )
+
+tab_data = averages |>
+  mutate(
+    name = case_when(
+      species == "co" ~ "Carbon Monoxide",
+      species == "nox" ~ "Oxides of Nitrogen",
+      species == "no2" ~ "Nitrogen Dioxide",
+      species == "o3"  ~ "Ozone",
+      species == "so2" ~ "Sulfur Dioxide",
+      species == "pm25" ~ "Particulate Matter",
+      species == "pm10" ~ ""
+    ),
+    species = case_when(
+      species == "co" ~ "CO",
+      species == "nox" ~ "NO<sub>x</sub>",
+      species == "no2" ~ "NO<sub>2</sub>",
+      species == "o3"  ~ "O<sub>3</sub>",
+      species == "so2" ~ "SO<sub>2</sub>",
+      species == "pm25" ~ "PM<sub>2.5</sub>",
+      species == "pm10" ~ "PM<sub>10</sub>"
+    )) |> 
+  relocate(name, .before = species)
+
+our_table = gt(tab_data) |> 
+  fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+  fmt_percent(columns = missing) |> 
+  fmt_markdown(columns = species) |> 
+  cols_label(
+    name = "Species Name",
+    species = "Formula"
+  ) |> 
+  tab_spanner(label = "Statistics", columns = p25:missing) |> 
+  tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+  tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package."))
+
+```
+
+### Table { - }
+
+```{r lev1-table, echo = F, message = F, warning = F}
+our_table
+```
+
+## Level 2: Using `gtExtras` to add in-line visualisations {.tabset .unnumbered}
+
+### Tutorial { - }
+
+> NB: The `gtExtras` package is currently under extremely active development, so be prepared for breaking changes until functionality is added to `gt` or `gtExtras` gets a stable release.
+
+The `gtExtras` package provides some helper functions to simplify the use of `gt` somewhat. This section will focus in on some of its key functionality, particularly the addition of "sparklines" to represent trends in a pollutant.
+
+First, however, we'll look at the use of the `gt_theme_*()` functions, which - much like `ggplot2::theme_*()` functions - make large changes to the appearance of our table. The themes are based on many popular websites, such as FiveThirtyEight, the Guardian newspaper, the New York Times, and more. Personally, I think the ESPN theme looks nice and clean.
+
+```{r espn}
+our_table = our_table |> 
+  gt_theme_espn()
+
+our_table
+```
+<br>
+
+On the topic of changing the appearence of a plot, `gtExtras` contains the `gt_highlight_rows()` function, which could be useful to draw attention to a certain row of a table. This could be a pollutant that is of particular interest, sites that exceed emission limits, or the current year (depending on how your table is formatted). There is also the equivalent `gt_highlight_cols()` function. 
+
+This functionality is demonstrated below, but we won't be taking it any further in this case. The "rows" argument can take a logical expression (here checking that the row is either NO<sub>2</sub> or NO<sub>x</sub>). Certain columns can also be "targeted", meaning that only certain cells are put in bold.
+
+```{r gt-highlight}
+our_table |> 
+  gt_highlight_rows(
+    rows = name %in% c("Nitrogen Dioxide", "Oxides of Nitrogen"), 
+    fill = "lightyellow",
+    target_col = c(name, species),
+    bold_target_only = T
+  )
+```
+<br>
+
+The most interesting functionality, perhaps, is the idea of in-line visualisations. These allow us to, at a glance, understand the distribution of some numeric data or - in our case - the trend in a time series. Plotting a time series is a classic part of air quality monitoring data analysis - `openair` itself has a dedicated function for it.
+
+```{r timeplot}
+timePlot(data, pollutant = "conc", type = "species", y.relation = "free", key = F,avg.time = "week")
+```
+<br>
+
+To get a "sparkline" into our table, there are two main steps:
+
+1.  Create a list column which contains a list of the data to be plotted as a sparkline. This means that there will be a column where each row is a list of data.
+
+2.  Use `gtExtras` to format this column as a sparkline.
+
+The code outlined below will achieve Step 1. `openair` is used to time average our data to be monthly - this will ensure our sparkline won't be totally unreadable. The most unusual step is perhaps the `summarise(trend = list(conc))` step. This is creating a data frame - one row per "species" as per the `group_by()` - which has the column "trend" which contains a list of the concentration data for the corresponding species. Notice the structure below - the "trend" column is populated by lists of 12 "dbl" values - one for each month of the year.
+
+```{r spark-data}
+spark = data |>
+  timeAverage(avg.time = "month", type = "species") |> 
+  group_by(species) |> 
+  summarise(trend = list(conc))
+
+all_data = left_join(averages, spark)
+
+all_data
+```
+
+With our new data - now including the list column - let's re-apply all of the code we have so far and see what the "raw" `gt` output is. Note that the `tutorial_level_1` function is a stand-in for all the formatting we applied in the previous section. Notice that all of the values of each list have now been printed - not what we're after.
+
+```{r lev2-func, include = F}
+
+tutorial_level_1 = function(gt){
+  
+  gt |> 
+    fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+    fmt_percent(columns = missing) |> 
+    fmt_markdown(columns = species) |> 
+    cols_label(
+      name = "Species Name",
+      species = "Formula"
+    ) |> 
+    tab_spanner(label = "Statistics", columns = p25:missing) |> 
+    tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+               subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+    tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package."))
+  
+}
+
+```
+
+
+```{r lev2-review}
+tab_data = all_data |>
+  mutate(
+    name = case_when(
+      species == "co" ~ "Carbon Monoxide",
+      species == "nox" ~ "Oxides of Nitrogen",
+      species == "no2" ~ "Nitrogen Dioxide",
+      species == "o3"  ~ "Ozone",
+      species == "so2" ~ "Sulfur Dioxide",
+      species == "pm25" ~ "Particulate Matter",
+      species == "pm10" ~ ""
+    ),
+    species = case_when(
+      species == "co" ~ "CO",
+      species == "nox" ~ "NO<sub>x</sub>",
+      species == "no2" ~ "NO<sub>2</sub>",
+      species == "o3"  ~ "O<sub>3</sub>",
+      species == "so2" ~ "SO<sub>2</sub>",
+      species == "pm25" ~ "PM<sub>2.5</sub>",
+      species == "pm10" ~ "PM<sub>10</sub>"
+    )) |> 
+  relocate(name, .before = species)
+
+our_table = gt(tab_data) |> 
+  tutorial_level_1() |> 
+  gt_theme_espn()
+
+our_table
+
+```
+<br>
+
+To accomplish Step 2, we use the `gtExtras` function `gt_sparkline()`. Much like other functions we have used, this takes a column (we'll give it "trend") and attempts to transform it into a sparkline. One important option to set is "same_limit" to be `FALSE` - this is the equivalent of setting "scales = 'free'" in a `ggplot2::facet_wrap()` function.
+
+The sparkline also highlights the maximum and minimum values using coloured dots. We can specify their colours using the "range_colors" argument.
+
+Notice also that `gt_sparkline()` prints the final value of the sparkline - this could be useful if we were showing yearly data, as that value would correpond to the most recent year in our data set! Here it just represents the average value in December so it could be removed if we wanted to drop it - for this we'd set "label" to be `FALSE`.
+
+```{r add-sparkline}
+our_table = our_table |> 
+  gt_sparkline(
+    column = trend,
+    range_colors = c("chartreuse3", "red"),
+    same_limit = F
+  )
+
+our_table
+```
+<br>
+
+`gtExtras` also has functions to add density functions, histograms, bar charts and bullet charts to your tables, so it is worth investigating these too. For some, like `gt_plt_bar()`, creating a list column isn't even necessary. The key thing is that none of the `gtExtras` "plotting" functions will require anything more complex than making a list column.
+
+It would be good for readers to understand what our sparkline represents. This may be a good opportunity to do some more formatting of our table using another `tab_*()` function, `tab_footnote()`. This is similar to `tab_source_note()` which we used before, but prints the label which it is provided with a superscript number associated with a specific part of our table. This could be the title, subtitle, a column header, or more. 
+
+To target specific parts of a `gt` table, there is a family of `cells_*()` functions. In this case, we use the `cells_column_labels()` function, which targets a specific column header. Notice that "TREND" now possesses a superscript "1", which is associated with the footnote at the bottom of the table.
+
+```{r}
+our_table = our_table |> 
+  tab_footnote(locations = cells_column_labels(columns = trend), 
+               footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") 
+
+our_table
+```
+<br>
+
+This is another good stopping point to review the code we've used so far. Notice what we have done:
+
+- We have used `gtExtras` to quickly add a theme to our `gt` table.
+- We have explored how `gtExtras` can be used to highlight rows or columns of interest.
+- We have used `gtExtras` and list columns to add attractive "sparklines" in our table to, at a glance, see trends in our time series.
+
+Review the full code from this level in the **"Code"** tab. Once you're comfortable with it, feel free to move onto Level 3 where `openair` plots will be inserted in-line, similar to the sparkline we've already seen.
+
+### Code { - }
+
+```{r Lev2-code, eval = F}
+# Calculate averages and get data for sparkline, and combine
+
+data = mydata |>
+  mutate(year = lubridate::year(date)) |> 
+  filter(year == 2003) |> 
+  pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
+  mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10"))) |> 
+  arrange(species)
+
+averages = data |> 
+  group_by(species) |> 
+  summarise(p25 = quantile(conc, .25, na.rm = T),
+            median = median(conc, na.rm = T),
+            mean   = mean(conc, na.rm = T),
+            p75 = quantile(conc, .75, na.rm = T),
+            max    = max(conc, na.rm = T),
+            missing = sum(is.na(conc)) / n()
+  )
+
+spark = data |>
+  timeAverage(avg.time = "month", type = "species") |> 
+  group_by(species) |> 
+  summarise(trend = list(conc))
+
+all_data = left_join(averages, spark)
+
+# Pre-format table data
+
+tab_data = all_data |>
+  mutate(
+    name = case_when(
+      species == "co" ~ "Carbon Monoxide",
+      species == "nox" ~ "Oxides of Nitrogen",
+      species == "no2" ~ "Nitrogen Dioxide",
+      species == "o3"  ~ "Ozone",
+      species == "so2" ~ "Sulfur Dioxide",
+      species == "pm25" ~ "Particulate Matter",
+      species == "pm10" ~ ""
+    ),
+    species = case_when(
+      species == "co" ~ "CO",
+      species == "nox" ~ "NO<sub>x</sub>",
+      species == "no2" ~ "NO<sub>2</sub>",
+      species == "o3"  ~ "O<sub>3</sub>",
+      species == "so2" ~ "SO<sub>2</sub>",
+      species == "pm25" ~ "PM<sub>2.5</sub>",
+      species == "pm10" ~ "PM<sub>10</sub>"
+    )) |> 
+  relocate(name, .before = species)
+
+# Tabulate
+
+our_table = gt(tab_data) |> 
+  
+  # Set theme as ESPN
+  gt_theme_espn() |> 
+  
+  # Format columns
+  fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+  fmt_percent(columns = missing) |> 
+  fmt_markdown(columns = species) |>
+  
+  # Column labels
+  cols_label(
+    name = "Species Name",
+    species = "Formula"
+  ) |> 
+  
+  # Format table (add spanners, title, footnotes, etc.)
+  tab_spanner(label = "Statistics", columns = p25:missing) |> 
+  tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+  tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package.")) |> 
+  tab_footnote(locations = cells_column_labels(columns = trend), 
+               footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") |> 
+  
+  # Format sparkline
+  gt_sparkline(
+    column = trend,
+    range_colors = c("chartreuse3", "red"),
+    same_limit = F
+  )
+
+```
+
+### Table { - }
+
+```{r Lev2-table, echo=F, message=F, warning=F}
+our_table
+```
 
 ## Level 3: Incorporating `openair` into a `gt` table {.tabset .unnumbered}
 
-### Lesson { - }
+### Tutorial { - }
 
-### Level Table { - }
+`openair` creates plots used the world over but, as previously discussed, is built using `lattice`. This is unfortunate as the `gt::ggplot_image()` function is designed to insert only `ggplot2` graphics into `gt`. We can still employ the principles behind `ggplot_image()`, we will just need to rewrite it a bit to work with `lattice` graphics. Let's consider what it is doing. The key thing it is achieving is to take some list of ggplot2 objects, save them in a local temporary directory, use the `gt` function `local_image()` to read them back in as images and insert them into the table, and then delete the temporary files.
+
+```{r ggplot-image, eval=F}
+#
+function (plot_object, height = 100, aspect_ratio = 1) 
+{
+  if (is.numeric(height)) {
+    height <- paste0(height, "px")
+  }
+  if (inherits(plot_object, "gg")) {
+    plot_object <- list(plot_object)
+  }
+  vapply(seq_along(plot_object), FUN.VALUE = character(1), 
+         USE.NAMES = FALSE, FUN = function(x) {
+           filename <- paste0("temp_ggplot_", formatC(x, width = 4, 
+                                                      flag = "0"), ".png")
+           ggplot2::ggsave(filename = filename, plot = plot_object[[x]], 
+                           device = "png", dpi = 100, width = 5 * aspect_ratio, 
+                           height = 5)
+           on.exit(file.remove(filename))
+           local_image(filename = filename, height = height)
+         })
+}
+```
+
+The key things that need changing are to change "gg" to "trellis", and to change the `ggsave()` step to a more `lattice`-friendly way to save plots.
+
+```{r openair-image, eval=F}
+openair_image = function (plot_object, height){
+  if (is.numeric(height)) {
+    height <- paste0(height, "px")
+  }
+  if (inherits(plot_object, "trellis")) {
+    plot_object <- list(plot_object)
+  }
+  invisible(vapply(seq_along(plot_object), FUN.VALUE = character(1),
+                   USE.NAMES = FALSE, FUN = function(x) {
+                     filename <- paste0("temp_openair_", formatC(x, width = 4,
+                                                                 flag = "0"), ".png")
+                     
+                     lattice::trellis.device(device = "png", filename = filename)
+                     print(plot_object[[x]])
+                     dev.off()
+                     
+                     on.exit(file.remove(filename))
+                     local_image(filename = filename, height = height)
+                   }))
+}
+```
+
+Now we have a function that can take a list of `lattice` plots and insert them into our `gt` table, we need to actually make our lattice plots and ensure that there are columns in our data for them to occupy. 
+
+To quickly produce `openair` plots for each pollutant, we can use a `dplyr` workflow. The below code may be an unfamiliar way of working, so to unpack:
+
+1.  The data is "nested by" the "species" column. This means that the data frame becomes a data frame of seven rows - one for each species - and two columns - the retained "species" column, and a list-column called "data" containing all of the other data. This can be conceptually difficult, but effectively we are creating a column in a data frame which itself contains data frames. `nest_by()` also "groups" by each row - any function applied to this new data frame will be applied to each row individually.
+
+2. `mutate()` is then used to create more list-columns, this time containing the `lattice` plot outputs of the `openair` `pollutionRose` and `polarPlot` functions. Note the use of `list()` to signify that we are creating list-columns.
+
+3. The whole data frame is arranged by "species". This is to ensure the plots are in the same order as our final table, and why turning them into factors right at the start was so important.
+
+Note that this may take a minute to run!
+
+```{r data-plots-real, eval = F}
+data_plots = data |> 
+  nest_by(species) |>
+  mutate(polrose = list(pollutionRose(data, pollutant = "conc")$plot),
+         polplot = list(polarPlot(data, pollutant = "conc")$plot)) |> 
+  arrange(species)
+
+data_plots
+```
+
+We now have a function to turn a column into plots, and the plots themselves. We now just need an empty couple of columns in our gt table to insert these plots into. We'll create some empty columns in our pre-existing `tab_data` data frame.
+
+```{r update-tab}
+tab_data = tab_data |> 
+  mutate(polrose = NA,
+         polplot = NA)
+
+tab_data
+```
+
+Let's see how this looks now. Note that, once again, the `tutorial_level_2` function is a stand-in for all the formatting we applied in the previous section. We now have two empty columns.
+
+```{r tutorial-func-2, include = F}
+tutorial_level_2 = function(gt){
+  
+  gt |> 
+    # Set theme as ESPN
+    gt_theme_espn() |> 
+    
+    # Format columns
+    fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+    fmt_percent(columns = missing) |> 
+    fmt_markdown(columns = species) |>
+    
+    # Column labels
+    cols_label(
+      name = "Species Name",
+      species = "Formula"
+    ) |> 
+    
+    # Format table (add spanners, title, footnotes, etc.)
+    tab_spanner(label = "Statistics", columns = p25:missing) |> 
+    tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+               subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+    tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package.")) |> 
+    tab_footnote(locations = cells_column_labels(columns = trend), 
+                 footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") |> 
+    
+    # Format sparkline
+    gt_sparkline(
+      column = trend,
+      range_colors = c("chartreuse3", "red"),
+      same_limit = F
+    )
+  
+}
+
+```
+
+```{r missing-cols}
+our_table = gt(tab_data) |> 
+  tutorial_level_2()
+
+our_table
+```
+<br>
+
+The final step is a complex one, so let's unpack it.
+
+1. The function we use is `text_transform()` from `gt`. This does targetted text transformations. In this case we are transforming an empty cell into a plot.
+
+2. `text_transform`, much like `tab_footnote`, needs a target specified by a `cells_*()` function. Here we are targetting the body of the cells themselves, hence the use of `cells_body()`. We specify our empty column ("polrose" or "polplot").
+
+3. `text_transform` also takes a function used to transform the cells it is targeting. Here we use `purrr` to "map" over the list of plots in our `data_plots` data frame using our `openair_image()` function. This effectively transforms each NA value in the column with the corresponding plot in the `data_plots` data frame.
+
+This process is why it was important that the order of the `data_plots` data frame was the same as the order of the table itself - if they were in the wrong order the plot would be with the wrong pollutant.
+
+```{r text-transform}
+our_table = our_table |>  
+  text_transform(
+    locations = cells_body(columns = polrose),
+    fn = function(x){
+      map(data_plots$polrose, openair_image, height = px(70))
+    }
+  ) |> 
+  text_transform(
+    locations = cells_body(columns = polplot),
+    fn = function(x){
+      map(data_plots$polplot, openair_image, height = px(70))
+    }
+  )
+
+our_table
+```
+<br>
+
+It is a good idea to use an `rmarkdown` format from `rmdformats` as they have lightbox enabled. This means that the `openair` plots can be clicked to expand them. This allows readers to investigate more closely the plots for the pollutants (or sites, or years, etc.) that they are most interested in.
+
+The table is nearing completion, so there is just a couple of final refinements that could be made. Some personal choices as last minute refinements are:
+
+- Using `tab_options()` to set the font size to be a little smaller. `tab_options()` is the `gt` equivalent to `ggplot2::theme()`.
+
+- Adding a new spanner using `tab_spanner()`, and renaming the new columns using `cols_label()`.
+
+- Fixing some column widths using `cols_width()`. Making all of the statistics columns the same width makes the table look a little more attractive!
+
+- Using `cols_align()` to align the "formula" column to be centred, which looks a little nicer.
+
+```{r tweaks}
+our_table = our_table |> 
+  tab_options(table.font.size = 12) |> 
+  tab_spanner(label = "Visualisations", columns = trend:polplot) |> 
+  cols_label(polrose = "Poll. Rose",
+             polplot = "Polar Plt.") |> 
+  cols_width(c(p25, median, mean, p75, max, missing) ~ px(50),
+             name ~ px(120)) |> 
+  cols_align(align = "center", columns = 2)
+
+our_table
+```
+<br>
+
+These are last-minute, personal refinements, but demonstrate the depth of the `gt` package. It is a good idea to explore the functions of `gt` and `gtExtras` further to really get down to what they both can do!
+
+The key achievement of this section was to add the `openair` plots to our `gt` table. The **"Code"** tab contains all the code needed to recreate the table **"Table"** tab, slightly refined for readability (putting things in a better order, and with comments).
+
+### Code { - }
+
+```{r lev3-code, eval = F}
+# Calculate averages and get data for sparkline, and combine
+
+data = mydata |>
+  mutate(year = lubridate::year(date)) |> 
+  filter(year == 2003) |> 
+  pivot_longer(nox:pm25, names_to = "species", values_to = "conc") |> 
+  mutate(species = factor(species, c("co", "nox", "no2", "o3", "so2", "pm25", "pm10"))) |> 
+  arrange(species)
+
+averages = data |> 
+  group_by(species) |> 
+  summarise(p25 = quantile(conc, .25, na.rm = T),
+            median = median(conc, na.rm = T),
+            mean   = mean(conc, na.rm = T),
+            p75 = quantile(conc, .75, na.rm = T),
+            max    = max(conc, na.rm = T),
+            missing = sum(is.na(conc)) / n()
+  )
+
+spark = data |>
+  timeAverage(avg.time = "month", type = "species") |> 
+  group_by(species) |> 
+  summarise(trend = list(conc))
+
+all_data = left_join(averages, spark) |> 
+  mutate(polrose = NA,
+         polplot = NA)
+
+# Function to tabulate plots 
+
+openair_image = function (plot_object, height){
+  if (is.numeric(height)) {
+    height <- paste0(height, "px")
+  }
+  if (inherits(plot_object, "trellis")) {
+    plot_object <- list(plot_object)
+  }
+  invisible(vapply(seq_along(plot_object), FUN.VALUE = character(1),
+                   USE.NAMES = FALSE, FUN = function(x) {
+                     filename <- paste0("temp_openair_", formatC(x, width = 4,
+                                                                 flag = "0"), ".png")
+                     
+                     lattice::trellis.device(device = "png", filename = filename)
+                     print(plot_object[[x]])
+                     dev.off()
+                     
+                     on.exit(file.remove(filename))
+                     local_image(filename = filename, height = height)
+                   }))
+}
+
+# List of plots
+
+data_plots = data |> 
+  nest_by(species) |>
+  mutate(polrose = list(pollutionRose(data, pollutant = "conc")$plot),
+         polplot = list(polarPlot(data, pollutant = "conc")$plot)) |> 
+  arrange(species)
+
+# Pre-format table data
+
+tab_data = all_data |>
+  mutate(
+    name = case_when(
+      species == "co" ~ "Carbon Monoxide",
+      species == "nox" ~ "Oxides of Nitrogen",
+      species == "no2" ~ "Nitrogen Dioxide",
+      species == "o3"  ~ "Ozone",
+      species == "so2" ~ "Sulfur Dioxide",
+      species == "pm25" ~ "Particulate Matter",
+      species == "pm10" ~ ""
+    ),
+    species = case_when(
+      species == "co" ~ "CO",
+      species == "nox" ~ "NO<sub>x</sub>",
+      species == "no2" ~ "NO<sub>2</sub>",
+      species == "o3"  ~ "O<sub>3</sub>",
+      species == "so2" ~ "SO<sub>2</sub>",
+      species == "pm25" ~ "PM<sub>2.5</sub>",
+      species == "pm10" ~ "PM<sub>10</sub>"
+    )) |> 
+  relocate(name, .before = species)
+
+# Tabulate
+
+our_table = gt(tab_data) |> 
+  
+  # Set theme as ESPN
+  gt_theme_espn() |> 
+  
+  # Format columns
+  fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
+  fmt_percent(columns = missing) |> 
+  fmt_markdown(columns = species) |>
+  
+  # Column labels, widths, and alignments
+  cols_label(name = "Species Name",
+             species = "Formula",
+             polrose = "Poll. Rose",
+             polplot = "Polar Plt.") |> 
+  cols_width(c(p25, median, mean, p75, max, missing) ~ px(50),
+           name ~ px(120)) |> 
+  cols_align(align = "left", columns = 1) |> 
+  cols_align(align = "center", columns = 2) |> 
+
+  # Format table (add spanners, title, footnotes, set font size, etc.)
+  tab_options(table.font.size = 12) |> 
+  tab_spanner(label = "Statistics", columns = p25:missing) |> 
+  tab_spanner(label = "Visualisations", columns = trend:polplot) |> 
+  tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
+             subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
+  tab_source_note(source_note = md("The data were obtained using the <code>openair</code> package.")) |> 
+  tab_footnote(locations = cells_column_labels(columns = trend), 
+               footnote = "Monthly average. The lowest and highest months are indicated with green and red, respectively.") |> 
+  
+  # Format sparkline
+  gt_sparkline(
+    column = trend,
+    range_colors = c("chartreuse3", "red"),
+    same_limit = F
+  ) |> 
+
+  # replace empty columns with plots
+  text_transform(
+    locations = cells_body(polrose),
+    fn = function(x){
+      map(data_plots$polrose, openair_image, height = px(70))
+    }
+  ) |> 
+  text_transform(
+    locations = cells_body(polplot),
+    fn = function(x){
+      map(data_plots$polplot, openair_image, height = px(70))
+    }
+  )
+
+
+```
+
+### Table { - }
 
 ```{r lev3-table, echo = F, warning = F, message = F}
-open_gt
+our_table
 ```
 
 # Conclusion
 
+`gt` is an incredibly powerful tool to create impressive HTML tables, with features well suited to presenting air quality data. We've progressed through three levels of complexity:
+
+1.  Getting to grips with `gt`, clearly presenting air quality monitoring statistics in an attractive way.
+
+2.  Incorporating visualisations into the plot, combining the classic time series plot with our HTML table, allowing for at-a-glance understanding of data trends.
+
+3.  Adding industry-standard `openair` `lattice`-based plots to our table, enabling clients to explore more closely the pollutants in which they are most interested.
+
+Even in these three sections we have just scratched the surface of what `gt` can do for presenting air quality data. It would be great to see more `gt` tables out in the wild, being used to great effect by the global air quality community. 
