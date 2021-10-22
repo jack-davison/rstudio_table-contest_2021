@@ -496,7 +496,7 @@ all_data = left_join(averages, spark)
 all_data
 ```
 
-With our new data - now including the list column - let's re-apply all of the code we have so far and see what the "raw" `gt` output is. Note that the `tutorial_level_1` function is a stand-in for all the formatting we applied in the previous section. Notice that all of the values of each list have now been printed - not what we're after.
+With our new data - now including the list column - let's re-apply all of the code we have so far and see what the "raw" `gt` output is. Note that the `tutorial_level_1()` function is a stand-in for all the formatting we applied in the previous section. Notice that all of the values of each list have now been printed - not what we're after.
 
 ```{r lev2-func, include = F}
 
@@ -773,7 +773,7 @@ tab_data = tab_data |>
 tab_data
 ```
 
-Let's see how this looks now. Note that, once again, the `tutorial_level_2` function is a stand-in for all the formatting we applied in the previous section. We now have two empty columns.
+Let's see how this looks now. Note that, once again, the `tutorial_level_2()` function is a stand-in for all the formatting we applied in the previous section. We now have two empty columns.
 
 ```{r tutorial-func-2, include = F}
 tutorial_level_2 = function(gt){
@@ -1029,6 +1029,8 @@ our_table
 
 # Conclusion
 
+## Closing Thoughts
+
 `gt` is an incredibly powerful tool to create impressive HTML tables, with features well suited to presenting air quality data. We've progressed through three levels of complexity:
 
 1.  Getting to grips with `gt`, clearly presenting air quality monitoring statistics in an attractive way.
@@ -1038,3 +1040,10 @@ our_table
 3.  Adding industry-standard `openair` `lattice`-based plots to our table, enabling clients to explore more closely the pollutants in which they are most interested.
 
 Even in these three sections we have just scratched the surface of what `gt` can do for presenting air quality data. It would be great to see more `gt` tables out in the wild, being used to great effect by the global air quality community. 
+
+## Session Info
+
+```{r session-info, echo = F}
+sessionInfo()
+```
+
