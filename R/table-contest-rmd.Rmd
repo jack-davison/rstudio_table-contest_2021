@@ -1029,7 +1029,7 @@ our_table
 
 # Conclusion
 
-## Closing Thoughts
+## Closing Thoughts { - }
 
 `gt` is an incredibly powerful tool to create impressive HTML tables, with features well suited to presenting air quality data. We've progressed through three levels of complexity:
 
@@ -1041,7 +1041,7 @@ our_table
 
 Even in these three sections we have just scratched the surface of what `gt` can do for presenting air quality data. It would be great to see more `gt` tables out in the wild, being used to great effect by the global air quality community. 
 
-## Session Info
+## Session Info { - }
 
 ```{r session-info, echo = F}
 sessionInfo()
