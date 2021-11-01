@@ -1,3 +1,4 @@
+<div align="center"><img width="450" src="./images/banner.png"/></div>
 <h2 align="center">
  RStudio Table Contest 2021: Tutorial Submission
 </h2>
