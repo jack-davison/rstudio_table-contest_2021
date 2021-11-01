@@ -1,4 +1,4 @@
-<div align="center"><img width="450" src="./images/banner.png"/></div>
+<a href="https://rpubs.com/JackDavison/gt-openair"><div align="center"><img width="450" src="./images/banner.png"/></div></a>
 <h2 align="center">
  RStudio Table Contest 2021: Tutorial Submission
 </h2>
@@ -14,7 +14,7 @@
 <details>
   <summary>Click to view</summary>
   <p align = "center"> The table is best viewed <a href="https://rpubs.com/JackDavison/gt-openair">[here]</a> to "zoom in" on the <code>openair</code> plots! 
-  <img src="./images/final-table.png"/></p>
+  <a href="https://rpubs.com/JackDavison/gt-openair"><img src="./images/final-table.png"/></p></a>
 </details>
 
 ## 👨‍🏫 The Tutorial
