@@ -340,7 +340,7 @@ By default, `gt` simply carries over the column names to be the header names, bu
 
 !["The elements of a gt table."](gt.svg "The elements of a gt table.")
 
-We are wanting to control something to do with *columns* so we'll use a `cols_*()` function. This family of functions can move columns around, merge them, hide them and - important right now - rename them. `cols_label()` takes 
+We are wanting to control something to do with *columns* so we'll use a `cols_*()` function. This family of functions can move columns around, merge them, hide them and - important right now - rename them. The syntax of `cols_label()` is almost the inverse of `dplyr::rename()` - instead of "new = old", "old = new" is provided. The new name should also be given as a string.
 
 ```{r cols-lab}
 our_table = our_table |> 
@@ -371,7 +371,7 @@ This is a good stopping point to review the code we've used so far. Notice what 
 - We used a `col_*()` function to change a property of a column (in this case, it's name)
 - We used `tab_*()` functions to make table-wide changes - giving it a title, spanner headers, etc.
 
-Review the full code from this level in the **"Code"** tab. Once you're comfortable with it, feel free to move onto Level 2 where `gtExtras` will be incorporated to enhance theming and introduce in-line visualisations.
+Review the full code from this level in the *"Code"* tab. Once you're comfortable with it, feel free to move onto Level 2 where `gtExtras` will be incorporated to enhance theming and introduce in-line visualisations.
 
 ### Code { - }
 
@@ -417,13 +417,19 @@ tab_data = averages |>
   relocate(name, .before = species)
 
 our_table = gt(tab_data) |> 
+  
+  # Format columns
   fmt_number(columns = where(is.numeric), n_sigfig = 3, drop_trailing_zeros = T) |> 
   fmt_percent(columns = missing) |> 
-  fmt_markdown(columns = species) |> 
+  fmt_markdown(columns = species) |>
+  
+  # Column labels
   cols_label(
     name = "Species Name",
     species = "Formula"
   ) |> 
+  
+  # Format table (add spanners, title, footnotes, etc.)
   tab_spanner(label = "Statistics", columns = p25:missing) |> 
   tab_header(title = md("<b>Marylebone 2003</b> | Air Quality Monitoring Summary"),
              subtitle = md("The data contains hourly measurements of air pollutant concentrations, wind speed and wind direction collected at the Marylebone (London) air quality monitoring supersite.")) |> 
@@ -473,7 +479,8 @@ our_table |>
 The most interesting functionality, perhaps, is the idea of in-line visualisations. These allow us to, at a glance, understand the distribution of some numeric data or - in our case - the trend in a time series. Plotting a time series is a classic part of air quality monitoring data analysis - `openair` itself has a dedicated function for it.
 
 ```{r timeplot}
-timePlot(data, pollutant = "conc", type = "species", y.relation = "free", key = F,avg.time = "week")
+timePlot(data, pollutant = "conc", type = "species", 
+         y.relation = "free", key = F, avg.time = "week")
 ```
 <br>
 
@@ -591,7 +598,7 @@ This is another good stopping point to review the code we've used so far. Notice
 - We have explored how `gtExtras` can be used to highlight rows or columns of interest.
 - We have used `gtExtras` and list columns to add attractive "sparklines" in our table to, at a glance, see trends in our time series.
 
-Review the full code from this level in the **"Code"** tab. Once you're comfortable with it, feel free to move onto Level 3 where `openair` plots will be inserted in-line, similar to the sparkline we've already seen.
+Review the full code from this level in the *"Code"* tab. Once you're comfortable with it, feel free to move onto Level 3 where `openair` plots will be inserted in-line, similar to the sparkline we've already seen.
 
 ### Code { - }
 
@@ -877,7 +884,7 @@ our_table
 
 These are last-minute, personal refinements, but demonstrate the depth of the `gt` package. It is a good idea to explore the functions of `gt` and `gtExtras` further to really get down to what they both can do!
 
-The key achievement of this section was to add the `openair` plots to our `gt` table. The **"Code"** tab contains all the code needed to recreate the table **"Table"** tab, slightly refined for readability (putting things in a better order, and with comments).
+The key achievement of this section was to add the `openair` plots to our `gt` table. The *"Code"* tab contains all the code needed to recreate the table *"Table"* tab, slightly refined for readability (putting things in a better order, and with comments).
 
 ### Code { - }
 
