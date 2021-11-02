@@ -29,6 +29,14 @@ The tutorial, presented using `rmarkdown`, is an introduction to the `gt` packag
  
  One of the key challenges of writing this was combining `openair` - a commonly used, industry-standard visualisation package self-described as a product of its time - with `gt` - a more modern tabulation tool. The key source of friction was inserting `lattice`-based `openair` plots into a `gt` HTML table, as `gt` only really streamlines the insertion of `ggplot2` figures. This is sensible - `ggplot2` has become the default tool for plotting in R - but in these fringe cases it can be useful to know how to marry the old and new.
  
+## 🗃️ The Repository
+
+This repository is somewhat spartan, but the following files may be of interest:
+
+1.  [R/create-full-table.R](./R/create-full-table.R) - This is a .R file that just contains the code to crate the HTML table. No external data is required for this.
+2.  [R/table-contest-rmd.Rmd](./R/table-contest-rmd.Rmd) - This is the raw .Rmd file that knits to create the tutorial.
+3.  [images/final-table.png](./images/final-table.png) - This is a static image of the final HTML table. Note that this is a sub-optimal way of viewing it. It is best viewed in a HTML document with "lightbox" functionality to allow the plots to be enlarged.
+ 
 ## 👋 About the Author
 **I am a PhD Student in atmospheric chemistry at the [Wolfson Atmospheric Chemistry Laboratories](https://www.york.ac.uk/chemistry/research/wacl/) at the [University of York](https://www.york.ac.uk/) in the United Kingdom, investigating how emissions from road transport impact the air we breathe.** As part of my work I delve into large data sets of road-side emissions data, which I accomplish primarily using [R](https://www.r-project.org/) in the [RStudio](https://rstudio.com/) IDE, with a focus on the [`{tidyverse}`](https://www.tidyverse.org/) suite of R packages and the dedicated air quality analysis package [`{openair}`](https://davidcarslaw.github.io/openair). I'm also keen on teaching reproducible data analysis through R, having become an [Rstudio Certified Tidyverse Instructor](https://education.rstudio.com/trainers/) in 2021.
 
