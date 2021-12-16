@@ -1,6 +1,6 @@
 <a href="https://rpubs.com/JackDavison/gt-openair"><div align="center"><img width="450" src="./images/banner.png"/></div></a>
 <h2 align="center">
- RStudio Table Contest 2021: Tutorial Submission
+ RStudio Table Contest 2021: <a href="https://www.rstudio.com/blog/winners-of-the-2021-table-contest/">Honourable Mention</a> Recipient
 </h2>
 
 <h1 style="font-weight:normal" align="center">
