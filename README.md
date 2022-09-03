@@ -7,7 +7,9 @@
  "Using <code>gt</code>, <code>gtExtras</code> and <code>openair</code> to present air quality monitoring data"
 </h1>
 
-<div align="center"><a href="https://rpubs.com/JackDavison/gt-openair">[Click to View Tutorial / Submission]</a></div>
+<div align="center"><b><a href="https://jack-davison.quarto.pub/gt-openair">[Click to View 2022 Tutorial Update]</a></b></div>
+
+<div align="center"><a href="https://rpubs.com/JackDavison/gt-openair/">[Original Submission]</a></div>
 
 ## 📝 The Table
  
