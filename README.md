@@ -1,4 +1,4 @@
-<a href="https://rpubs.com/JackDavison/gt-openair"><div align="center"><img width="450" src="./images/banner.png"/></div></a>
+<a href="https://rpubs.com/JackDavison/gt-openair"><div align="center"><img width="450" src="./man/banner.png"/></div></a>
 <h2 align="center">
  RStudio Table Contest 2021: <a href="https://www.rstudio.com/blog/winners-of-the-2021-table-contest/">Honourable Mention</a> Recipient
 </h2>
@@ -14,7 +14,7 @@
 <details>
   <summary>Click to view</summary>
   <p align = "center"> The table is best viewed <a href="https://rpubs.com/JackDavison/gt-openair">[here]</a> to "zoom in" on the <code>openair</code> plots! 
-  <a href="https://rpubs.com/JackDavison/gt-openair"><img src="./images/final-table.png"/></p></a>
+  <a href="https://rpubs.com/JackDavison/gt-openair"><img src="./man/final-table.png"/></p></a>
 </details>
 
 ## 👨‍🏫 The Tutorial
@@ -34,11 +34,12 @@ The tutorial, presented using `rmarkdown`, is an introduction to the `gt` packag
 This repository is somewhat spartan, but the following files may be of interest:
 
 1.  [R/create-full-table.R](./R/create-full-table.R) - This is a .R file that just contains the code to crate the HTML table. No external data is required for this.
-2.  [R/table-contest-rmd.Rmd](./R/table-contest-rmd.Rmd) - This is the raw .Rmd file that knits to create the tutorial.
-3.  [images/final-table.png](./images/final-table.png) - This is a static image of the final HTML table. Note that this is a sub-optimal way of viewing it. It is best viewed in a HTML document with "lightbox" functionality to allow the plots to be enlarged.
+2.  [rmd/table-contest-rmd.Rmd](./R/table-contest-rmd.Rmd) - This is the raw .Rmd file that knits to create the tutorial.
+3.  [qmd/table-contest-qmd.qmd](./R/table-contest-qmd.qmd) - This is the raw .qmd file of the 2022 update of the tutorial, which uses Quarto.
+4.  [man/final-table.png](./man/final-table.png) - This is a static image of the final HTML table.
  
 ## 👋 About the Author
-**I am a PhD Student in atmospheric chemistry at the [Wolfson Atmospheric Chemistry Laboratories](https://www.york.ac.uk/chemistry/research/wacl/) at the [University of York](https://www.york.ac.uk/) in the United Kingdom, investigating how emissions from road transport impact the air we breathe.** As part of my work I delve into large data sets of road-side emissions data, which I accomplish primarily using [R](https://www.r-project.org/) in the [RStudio](https://rstudio.com/) IDE, with a focus on the [`{tidyverse}`](https://www.tidyverse.org/) suite of R packages and the dedicated air quality analysis package [`{openair}`](https://davidcarslaw.github.io/openair). I'm also keen on teaching reproducible data analysis through R, having become an [Rstudio Certified Tidyverse Instructor](https://education.rstudio.com/trainers/) in 2021.
+**I am an R Developer and Data Analyst, having recently completed a PhD in atmospheric chemistry at the [Wolfson Atmospheric Chemistry Laboratories](https://www.york.ac.uk/chemistry/research/wacl/) at the [University of York](https://www.york.ac.uk/) in the United Kingdom, investigating how emissions from road transport impact the air we breathe.** I accomplish much of my work through using [R](https://www.r-project.org/) in the [RStudio](https://rstudio.com/) IDE, with a focus on the [`{tidyverse}`](https://www.tidyverse.org/) suite of R packages and the dedicated air quality analysis package [`{openair}`](https://davidcarslaw.github.io/openair). I'm also keen on teaching reproducible data analysis through R, having become an [Rstudio Certified Tidyverse Instructor](https://education.rstudio.com/trainers/) in 2021.
 
 <div align = "center">
 

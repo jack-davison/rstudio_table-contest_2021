@@ -1,0 +1,4 @@
+- source: table-contest-qmd.qmd
+  quarto-pub:
+    - id: 354b8982-f5ea-4352-ac55-3ba9897526e7
+      url: 'https://quartopub.com/sites/jack-davison/using-gt-gtextras-and-openair-to-present-air-quality-monitoring-data'
