@@ -34,8 +34,8 @@ The tutorial, presented using `rmarkdown`, is an introduction to the `gt` packag
 This repository is somewhat spartan, but the following files may be of interest:
 
 1.  [R/create-full-table.R](./R/create-full-table.R) - This is a .R file that just contains the code to crate the HTML table. No external data is required for this.
-2.  [rmd/table-contest-rmd.Rmd](./R/table-contest-rmd.Rmd) - This is the raw .Rmd file that knits to create the tutorial.
-3.  [qmd/table-contest-qmd.qmd](./R/table-contest-qmd.qmd) - This is the raw .qmd file of the 2022 update of the tutorial, which uses Quarto.
+2.  [rmd/table-contest-rmd.Rmd](./rmd/table-contest-rmd.Rmd) - This is the raw .Rmd file that knits to create the tutorial.
+3.  [qmd/table-contest-qmd.qmd](./qmd/table-contest-qmd.qmd) - This is the raw .qmd file of the 2022 update of the tutorial, which uses Quarto.
 4.  [man/final-table.png](./man/final-table.png) - This is a static image of the final HTML table.
  
 ## 👋 About the Author
