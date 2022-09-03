@@ -5,6 +5,9 @@
 # Session Data files
 .RData
 
+# html docs
+*.html
+
 # Example code in package build process
 *-Ex.R
 
@@ -34,6 +37,3 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
-
-# html dogs
-.html
